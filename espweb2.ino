@@ -17,6 +17,8 @@ const char* password = "52210389";
 
 #define pinStep 16
 #define pinDir 17
+#define pinReset 2
+#define pinSleep 19
 #define dolniSenzor 4
 #define horniSenzor 15
 AccelStepper stepper(1, pinStep, pinDir);
@@ -194,6 +196,8 @@ void setup() {
   tsl.setTiming(TSL2591_INTEGRATIONTIME_300MS);
   pinMode(dolniSenzor, INPUT);
   pinMode(horniSenzor, INPUT);
+  pinMode(pinSleep, OUTPUT);
+  pinMode(pinReset, OUTPUT);
   stepper.setMaxSpeed(1000.0);
   stepper.setAcceleration(500.0);
   WiFi.mode(WIFI_STA);
@@ -261,20 +265,29 @@ void loop() {
   ir = lum >> 16;
   full = lum & 0xFFFF;
   uint32_t svetlo = tsl.calculateLux(full, ir);
+  digitalWrite(pinReset, HIGH);
+  digitalWrite(pinSleep, LOW);
+  delay(1);
   while ((uplneNahoru == true) && (digitalRead(horniSenzor) == 1))
   {
+    digitalWrite(pinSleep, HIGH);
+    delay(1);
     stepper.move(20);
     stepper.runToPosition();
   }
   uplneNahoru = false;
   while ((uplneDolu == true) && (digitalRead(dolniSenzor) == 1))
   {
+    digitalWrite(pinSleep, HIGH);
+    delay(1);
     stepper.move(-20);
     stepper.runToPosition();
   }
   uplneDolu = false;
   if ((svetSenzor == true) && (svetSenzorOtevrit == false) && (svetlo > 500))
   {
+    digitalWrite(pinSleep, HIGH);
+    delay(1);
     while (digitalRead(dolniSenzor) == 1)
     {
       stepper.move(-20);
@@ -283,6 +296,8 @@ void loop() {
   }
   if ((svetSenzor == true) && (svetSenzorOtevrit == true) && (svetlo > 500))
   {
+    digitalWrite(pinSleep, HIGH);
+    delay(1);
     while (digitalRead(dolniSenzor) == 1)
     {
       stepper.move(-20);
@@ -292,14 +307,19 @@ void loop() {
     stepper.runToPosition();
   }
   if (nahoru == true && (digitalRead(horniSenzor) == 1)) {
+    digitalWrite(pinSleep, HIGH);
+    delay(1);
     dolu = false;
     stepper.move(20);
     stepper.runToPosition();
   }
   if (dolu == true && (digitalRead(dolniSenzor) == 1)) {
+    digitalWrite(pinSleep, HIGH);
+    delay(1);
     nahoru = false;
     stepper.move(-20);
     stepper.runToPosition();
   }
 
+}
 }
